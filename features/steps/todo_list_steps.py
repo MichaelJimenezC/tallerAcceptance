@@ -1,5 +1,5 @@
 from behave import given, when, then
-from todo_list import ToDoList
+from main import ToDoList
 
 @given("the to-do list is empty")
 def step_empty_list(context):
