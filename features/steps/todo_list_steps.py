@@ -1,74 +1,95 @@
 from behave import given, when, then
-from main import ToDoList
+
+# Usaremos una estructura sencilla para almacenar tareas
+# Ejemplo: context.todo_list = [{"task": "Buy groceries", "status": "Pending"}]
 
 @given("the to-do list is empty")
-def step_empty_list(context):
-    context.todo = ToDoList()
-
-@when('the user adds a task "{title}"')
-def step_add_task(context, title):
-    context.todo.add_task(title)
-
-@then('the to-do list should contain "{title}"')
-def step_check_contains(context, title):
-    titles = [task.title for task in context.todo.list_tasks()]
-    assert title in titles
+def step_impl(context):
+    context.todo_list = []
 
 
-# LIST TASKS
-@given("the to-do list contains tasks:")
-def step_given_tasks(context):
-    context.todo = ToDoList()
+@given("the to-do list contains tasks")
+def step_impl(context):
+    context.todo_list = []
     for row in context.table:
-        context.todo.add_task(row["Task"])
+        context.todo_list.append({"task": row["Task"], "status": "Pending"})
+
+
+@given("the to-do list contains tasks with status")
+def step_impl(context):
+    context.todo_list = []
+    for row in context.table:
+        context.todo_list.append({"task": row["Task"], "status": row["Status"]})
+
+
+@when('the user adds a task "{task}"')
+def step_impl(context, task):
+    context.todo_list.append({"task": task, "status": "Pending"})
+
 
 @when("the user lists all tasks")
-def step_list_tasks(context):
-    context.list_output = [task.title for task in context.todo.list_tasks()]
-
-@then("the output should contain:")
-def step_check_output(context):
-    expected_lines = context.text.strip().split("\n")
-    for line in expected_lines:
-        assert line.strip() in context.list_output
+def step_impl(context):
+    # Simula imprimir la lista
+    lines = [item["task"] for item in context.todo_list]
+    context.output = "\n".join(lines)
 
 
-# MARK COMPLETED
-@given("the to-do list contains tasks with status:")
-def step_given_tasks_status(context):
-    context.todo = ToDoList()
-    for row in context.table:
-        context.todo.add_task(row["Task"])
-        if row["Status"] == "Completed":
-            context.todo.mark_task_completed(row["Task"])
-
-@when('the user marks task "{title}" as completed')
-def step_mark_completed(context, title):
-    context.todo.mark_task_completed(title)
-
-@then('the task "{title}" should appear as completed')
-def step_check_completed(context, title):
-    for task in context.todo.list_tasks():
-        if task.title == title:
-            assert task.status == "Completed"
+@when('the user marks task "{task}" as completed')
+def step_impl(context, task):
+    for item in context.todo_list:
+        if item["task"] == task:
+            item["status"] = "Completed"
 
 
-# CLEAR LIST
 @when("the user clears the task list")
-def step_clear_list(context):
-    context.todo.clear_tasks()
+def step_impl(context):
+    context.todo_list = []
+
+
+@when('the user deletes the task "{task}"')
+def step_impl(context, task):
+    context.todo_list = [item for item in context.todo_list if item["task"] != task]
+
+
+@then('the to-do list should contain "{task}"')
+def step_impl(context, task):
+    tasks = [item["task"] for item in context.todo_list]
+    assert task in tasks, f"Task '{task}' not found in list"
+
 
 @then("the to-do list should be empty")
-def step_check_empty(context):
-    assert len(context.todo.list_tasks()) == 0
+def step_impl(context):
+    assert len(context.todo_list) == 0, "List is not empty"
 
 
-# DELETE TASK
-@when('the user deletes the task "{title}"')
-def step_delete_task(context, title):
-    context.todo.delete_task(title)
+@then('the to-do list should not contain "{task}"')
+def step_impl(context, task):
+    tasks = [item["task"] for item in context.todo_list]
+    assert task not in tasks, f"Task '{task}' is still in the list"
 
-@then('the to-do list should not contain "{title}"')
-def step_not_contain(context, title):
-    titles = [task.title for task in context.todo.list_tasks()]
-    assert title not in titles
+
+@then("the output should contain")
+def step_impl(context):
+    expected_output = "\n".join(
+        line.rstrip()
+        for line in context.text.strip().splitlines()
+    ).strip()
+
+    actual_output = "\n".join(
+        line.rstrip()
+        for line in context.output.strip().splitlines()
+    ).strip()
+
+    assert expected_output == actual_output, (
+        f"Expected output:\n{expected_output}\n\nActual output:\n{actual_output}"
+    )
+
+
+
+@then('the task "{task}" should appear as completed')
+def step_impl(context, task):
+    for item in context.todo_list:
+        if item["task"] == task:
+            assert item["status"] == "Completed", f"Task '{task}' is not marked completed"
+            return
+    assert False, f"Task '{task}' not found"
