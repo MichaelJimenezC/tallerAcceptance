@@ -1,7 +1,5 @@
 from behave import given, when, then
 
-# Usaremos una estructura sencilla para almacenar tareas
-# Ejemplo: context.todo_list = [{"task": "Buy groceries", "status": "Pending"}]
 
 @given("the to-do list is empty")
 def step_impl(context):
@@ -29,7 +27,6 @@ def step_impl(context, task):
 
 @when("the user lists all tasks")
 def step_impl(context):
-    # Simula imprimir la lista
     lines = [item["task"] for item in context.todo_list]
     context.output = "\n".join(lines)
 

@@ -37,7 +37,7 @@ Feature: To-Do List Manager
     When the user clears the task list
     Then the to-do list should be empty
 
-  # 5) NEW FEATURE: Delete a task
+  # 5) Delete a task
   Scenario: Delete a specific task
     Given the to-do list contains tasks:
       | Task         |
